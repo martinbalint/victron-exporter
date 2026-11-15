@@ -1066,4 +1066,117 @@ var suffixTopicMap = map[string]mqttObserver{
 			Name: "dc_battery_temperature_celsius",
 			Help: "",
 		}),
+
+	// Tank levels
+	// https://github.com/victronenergy/venus/wiki/dbus#tank-levels
+	"Level": gaugeObserver(
+		prometheus.GaugeOpts{
+			Name: "tank_level_percent",
+			Help: "0 to 100%",
+		}),
+	"Remaining": gaugeObserver(
+		prometheus.GaugeOpts{
+			Name: "tank_remaining_cubic_meters",
+			Help: "m3",
+		}),
+	"Capacity": gaugeObserver(
+		prometheus.GaugeOpts{
+			Name: "tank_capacity_cubic_meters",
+			Help: "m3",
+		}),
+	"FluidType": gaugeObserver(
+		prometheus.GaugeOpts{
+			Name: "tank_fluid_type",
+			Help: "0=Fuel; 1=Fresh water; 2=Waste water; 3=Live well; 4=Oil; 5=Black water; 6=Gasoline; 7=Diesel; 8=LPG; 9=LNG; 10=Hydraulic oil; 11=Raw water",
+		}),
+	"Standard": gaugeObserver(
+		prometheus.GaugeOpts{
+			Name: "tank_standard",
+			Help: "0=European (resistive); 1=USA (resistive); 2=Not applicable (used for Voltage and Amp sensors)",
+		}),
+	"FilterLength": gaugeObserver(
+		prometheus.GaugeOpts{
+			Name: "tank_filter_length",
+			Help: "Averaging filter length",
+		}),
+	"RawValue": gaugeObserver(
+		prometheus.GaugeOpts{
+			Name: "tank_raw_value",
+			Help: "",
+		}),
+	"RawValueEmpty": gaugeObserver(
+		prometheus.GaugeOpts{
+			Name: "tank_raw_value_empty",
+			Help: "",
+		}),
+	"RawValueFull": gaugeObserver(
+		prometheus.GaugeOpts{
+			Name: "tank_raw_value_full",
+			Help: "",
+		}),
+	"Alarms/High/State": alarm("TankHigh"),
+	"Alarms/Low/State":  alarm("TankLow"),
+
+	// Temperature sensors
+	// https://github.com/victronenergy/venus/wiki/dbus#temperatures
+	"Temperature": gaugeObserver(
+		prometheus.GaugeOpts{
+			Name: "temperature_celsius",
+			Help: "°C - Temperature sensors and Mopeka tank sensors",
+		}),
+	"TemperatureType": gaugeObserver(
+		prometheus.GaugeOpts{
+			Name: "temperature_type",
+			Help: "0=Battery; 1=Fridge; 2=Generic; 3=Room; 4=Outdoor; 5=WaterHeater; 6=Freezer",
+		}),
+	"Scale": gaugeObserver(
+		prometheus.GaugeOpts{
+			Name: "temperature_scale",
+			Help: "Calibration scale factor",
+		}),
+	"Offset": gaugeObserver(
+		prometheus.GaugeOpts{
+			Name: "temperature_offset",
+			Help: "Calibration offset",
+		}),
+	"Humidity": gaugeObserver(
+		prometheus.GaugeOpts{
+			Name: "humidity_percent",
+			Help: "% - Relative humidity (Ruuvi)",
+		}),
+	"Pressure": gaugeObserver(
+		prometheus.GaugeOpts{
+			Name: "pressure_hpa",
+			Help: "hPa - Atmospheric pressure (Ruuvi)",
+		}),
+	"AccelX": gaugeObserver(
+		prometheus.GaugeOpts{
+			Name:        "acceleration",
+			Help:        "Acceleration (Ruuvi)",
+			ConstLabels: prometheus.Labels{"axis": "x"},
+		}),
+	"AccelY": gaugeObserver(
+		prometheus.GaugeOpts{
+			Name:        "acceleration",
+			Help:        "Acceleration (Ruuvi)",
+			ConstLabels: prometheus.Labels{"axis": "y"},
+		}),
+	"AccelZ": gaugeObserver(
+		prometheus.GaugeOpts{
+			Name:        "acceleration",
+			Help:        "Acceleration (Ruuvi)",
+			ConstLabels: prometheus.Labels{"axis": "z"},
+		}),
+	"BatteryVoltage": gaugeObserver(
+		prometheus.GaugeOpts{
+			Name: "sensor_battery_voltage_volts",
+			Help: "V - Sensor battery voltage (Ruuvi and Mopeka sensors)",
+		}),
+
+	// Shared by tank and temperature sensors
+	"Status": gaugeObserver(
+		prometheus.GaugeOpts{
+			Name: "sensor_status",
+			Help: "0=Ok; 1=Disconnected; 2=Short circuited; 3=Reverse polarity (temp) / Unknown (tank); 4=Unknown (temp) / Config error (tank)",
+		}),
 }

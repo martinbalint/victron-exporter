@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"net"
+	"strconv"
 	"strings"
 	"time"
 
@@ -51,8 +53,7 @@ type mqttConnectionConfig struct {
 
 func connectWait(client mqtt.Client) error {
 	token := client.Connect()
-	for !token.WaitTimeout(3 * time.Second) {
-	}
+	token.Wait()
 
 	err := token.Error()
 	if err != nil {
@@ -87,7 +88,7 @@ func listen(clientID string, config mqttConnectionConfig, topic string) error {
 }
 
 func newConnectionLostHandler(clientID string) mqtt.ConnectionLostHandler {
-	return func(c mqtt.Client, e error) {
+	return func(_ mqtt.Client, e error) {
 		log.WithFields(log.Fields{
 			"client_id": clientID,
 		}).WithError(e).Error("mqtt connection lost")
@@ -117,11 +118,12 @@ func createClientOptions(clientID string, config mqttConnectionConfig, onConnect
 	opts.SetConnectionLostHandler(newConnectionLostHandler(clientID))
 	opts.SetOnConnectHandler(newConnectionHandler(clientID, onConnectionHandler))
 
+	brokerAddr := net.JoinHostPort(config.host, strconv.Itoa(config.port))
 	if config.secure {
-		opts.AddBroker(fmt.Sprintf("ssl://%s:%d", config.host, config.port))
+		opts.AddBroker("ssl://" + brokerAddr)
 		opts.SetTLSConfig(newTLSConfig())
 	} else {
-		opts.AddBroker(fmt.Sprintf("tcp://%s:%d", config.host, config.port))
+		opts.AddBroker("tcp://" + brokerAddr)
 	}
 
 	if config.username != "" {
@@ -146,10 +148,33 @@ type victronStringValue struct {
 	Value *string `json:"value"`
 }
 
-func mqttSubscriptionHandler(client mqtt.Client, msg mqtt.Message) {
+func handleSerial(topic string, payload []byte) {
+	var v victronStringValue
+
+	err := json.Unmarshal(payload, &v)
+	if err != nil {
+		log.Warn("failed to unmarshal victron mqtt payload for "+topic+": ", err)
+		subscriptionsUpdatesIgnoredTotal.Inc()
+
+		return
+	}
+
+	if v.Value != nil {
+		systemSerialID = *v.Value
+	}
+}
+
+func mqttSubscriptionHandler(_ mqtt.Client, msg mqtt.Message) {
 	subscriptionsUpdatesTotal.Inc()
 
 	topic := msg.Topic()
+
+	if strings.HasPrefix(topic, "R/") {
+		log.Trace("Skipping " + topic + " as it's a request topic.")
+
+		return
+	}
+
 	topicParts := strings.Split(topic, "/")
 	if len(topicParts) < 5 {
 		subscriptionsUpdatesIgnoredTotal.Inc()
@@ -164,19 +189,7 @@ func mqttSubscriptionHandler(client mqtt.Client, msg mqtt.Message) {
 	topicString := strings.Join(topicInfoParts, "/")
 
 	if (topicString == "Serial") && (systemSerialID == "") {
-		var v victronStringValue
-
-		err := json.Unmarshal(msg.Payload(), &v)
-		if err != nil {
-			log.Warn("failed to unmarshal victron mqtt payload: ", err)
-			subscriptionsUpdatesIgnoredTotal.Inc()
-
-			return
-		}
-
-		if v.Value != nil {
-			systemSerialID = *v.Value
-		}
+		handleSerial(topic, msg.Payload())
 
 		return
 	}
@@ -188,11 +201,18 @@ func mqttSubscriptionHandler(client mqtt.Client, msg mqtt.Message) {
 		return
 	}
 
+	// JSON unmarshal will always fail if there is no payload.
+	if len(msg.Payload()) == 0 {
+		log.Trace("Skipping; No value present for " + topic)
+
+		return
+	}
+
 	var v victronValue
 
 	err := json.Unmarshal(msg.Payload(), &v)
 	if err != nil {
-		log.Warn("failed to unmarshal victron mqtt payload: ", err)
+		log.Warn("failed to unmarshal victron mqtt payload for "+topic+": ", err)
 		subscriptionsUpdatesIgnoredTotal.Inc()
 
 		return
