@@ -58,8 +58,17 @@ func main() {
 	log.WithField("address", *listenAddress).Info("victron_exporter listening")
 
 	http.Handle("/metrics", promhttp.Handler())
+
+	srv := &http.Server{
+		Addr:              *listenAddress,
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      10 * time.Second,
+		IdleTimeout:       60 * time.Second,
+	}
+
 	go func() {
-		err := http.ListenAndServe(*listenAddress, nil)
+		err := srv.ListenAndServe()
 		if err != nil {
 			log.WithField("address", *listenAddress).WithError(err).Fatal("failed to listen on address")
 		}

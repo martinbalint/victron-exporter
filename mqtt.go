@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"net"
+	"strconv"
 	"strings"
 	"time"
 
@@ -117,11 +119,12 @@ func createClientOptions(clientID string, config mqttConnectionConfig, onConnect
 	opts.SetConnectionLostHandler(newConnectionLostHandler(clientID))
 	opts.SetOnConnectHandler(newConnectionHandler(clientID, onConnectionHandler))
 
+	brokerAddr := net.JoinHostPort(config.host, strconv.Itoa(config.port))
 	if config.secure {
-		opts.AddBroker(fmt.Sprintf("ssl://%s:%d", config.host, config.port))
+		opts.AddBroker("ssl://" + brokerAddr)
 		opts.SetTLSConfig(newTLSConfig())
 	} else {
-		opts.AddBroker(fmt.Sprintf("tcp://%s:%d", config.host, config.port))
+		opts.AddBroker("tcp://" + brokerAddr)
 	}
 
 	if config.username != "" {
