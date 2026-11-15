@@ -1087,7 +1087,7 @@ var suffixTopicMap = map[string]mqttObserver{
 	"FluidType": gaugeObserver(
 		prometheus.GaugeOpts{
 			Name: "tank_fluid_type",
-			Help: "0=Fuel; 1=Fresh water; 2=Waste water; 3=Live well; 4=Oil; 5=Black water (sewage); 6=Gasoline; 7=Diesel; 8=LPG; 9=LNG; 10=Hydraulic oil; 11=Raw water",
+			Help: "0=Fuel; 1=Fresh water; 2=Waste water; 3=Live well; 4=Oil; 5=Black water; 6=Gasoline; 7=Diesel; 8=LPG; 9=LNG; 10=Hydraulic oil; 11=Raw water",
 		}),
 	"Standard": gaugeObserver(
 		prometheus.GaugeOpts{
@@ -1177,6 +1177,6 @@ var suffixTopicMap = map[string]mqttObserver{
 	"Status": gaugeObserver(
 		prometheus.GaugeOpts{
 			Name: "sensor_status",
-			Help: "0=Ok; 1=Disconnected; 2=Short circuited; 3=Reverse polarity (temperature) / Unknown (tank); 4=Unknown (temperature) / Configuration error (tank)",
+			Help: "0=Ok; 1=Disconnected; 2=Short circuited; 3=Reverse polarity (temp) / Unknown (tank); 4=Unknown (temp) / Config error (tank)",
 		}),
 }

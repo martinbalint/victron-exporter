@@ -1,5 +1,5 @@
 golang 1.27.4
-goreleaser 1.9.2
-golangci-lint 1.41.1
-pre-commit 2.19.0
+goreleaser 2.20.2
+golangci-lint 2.15.0
+pre-commit 4.7.0
 python system

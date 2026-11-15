@@ -1,3 +1,4 @@
+// Package main implements a Prometheus exporter for Victron Energy GX devices over MQTT.
 package main
 
 import (
